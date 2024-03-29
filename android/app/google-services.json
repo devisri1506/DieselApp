@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1069474208952",
+    "project_id": "quarry365",
+    "storage_bucket": "quarry365.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1069474208952:android:572559495c8c30a2c4284d",
+        "android_client_info": {
+          "package_name": "com.Quarry365"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSeQ693WbMrzaqDop6COw3ydFQE7d3Qck"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

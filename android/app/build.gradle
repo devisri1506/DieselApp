@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.application'
+    id 'com.google.gms.google-services'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.facebook.react'
+}
+
+android {
+    compileSdkVersion 34
+    buildToolsVersion '34.0.0'
+
+    defaultConfig {
+        applicationId 'com.Quarry365'
+        minSdkVersion 23
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.0"
+        multiDexEnabled true // Enable multidex support if needed
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:32.7.4')
+    implementation 'com.google.firebase:firebase-analytics'
+
+    implementation 'com.facebook.react:react-native:+' // Use the version provided by React Native Gradle Plugin
+
+    // Add other dependencies as needed
+
+    // Optional dependencies based on configuration properties
+    def isGifEnabled = (findProperty('expo.gif.enabled') ?: "") == "true";
+    def isWebpEnabled = (findProperty('expo.webp.enabled') ?: "") == "true";
+    def isWebpAnimatedEnabled = (findProperty('expo.webp.animated') ?: "") == "true";
+
+    if (isGifEnabled) {
+        implementation 'com.facebook.fresco:animated-gif:2.5.0' // Adjust version if needed
+    }
+
+    if (isWebpEnabled) {
+        implementation 'com.facebook.fresco:webpsupport:2.5.0' // Adjust version if needed
+        if (isWebpAnimatedEnabled) {
+            implementation 'com.facebook.fresco:animated-webp:2.5.0' // Adjust version if needed
+        }
+    }
+
+    // Enable Hermes if desired
+    def hermesEnabled = (findProperty('hermesEnabled') ?: "false").toBoolean()
+    if (hermesEnabled) {
+        implementation 'com.facebook.react:hermes-android:0.4.0'
+    } else {
+        implementation 'org.webkit:android-jsc:+' // Use JSC as default
+    }
+}
+
+// Apply configuration for React Native CLI Platform Android
+apply from: new File(["node", "--print", "require.resolve('@react-native-community/cli-platform-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), "../native_modules.gradle")

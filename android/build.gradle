@@ -1,0 +1,28 @@
+buildscript {
+    ext {
+        // Define versions for dependencies
+        androidBuildToolsVersion = '4.2.2'
+        kotlinVersion = '1.5.31'
+        googleServicesVersion = '4.4.0'
+    }
+
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        // Specify exact versions for dependencies
+        classpath "com.android.tools.build:gradle:$androidBuildToolsVersion"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+        classpath "com.google.gms:google-services:$googleServicesVersion"
+    }
+}
+
+allprojects {
+    repositories {
+        // Minimal repositories needed globally
+        google()
+        mavenCentral()
+    }
+}
