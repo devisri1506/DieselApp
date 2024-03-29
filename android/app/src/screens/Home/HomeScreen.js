@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, Platform, Keyboard
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { db } from '../../../../../firebase';
 import { collection, addDoc } from 'firebase/firestore'; 
-
+import { Timestamp } from 'firebase/firestore'; 
 const HomePage = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [dieselType, setDieselType] = useState(null);
@@ -37,7 +37,16 @@ const HomePage = () => {
       alert(error);
     }
   };
-
+  const saveDieselAvailable = async(data) => {
+    try {
+      const docRef = await addDoc(collection(db, 'diesel'), data);
+      console.log("Document written with ID: ", docRef.id);
+      Keyboard.dismiss();
+    } catch (error) {
+      console.error("Error adding document: ", error);
+      alert(error);
+    }
+  };
 
   const handleSave = () => {
     // Calculate diesel available based on diesel in/out
@@ -48,20 +57,22 @@ const HomePage = () => {
       newDieselAvailable -= parseFloat(quantity);
     }
     setDieselAvailable(newDieselAvailable);
-
+    const dateString = date.toISOString().split('T')[0]; 
     // Prepare the data object to be saved to Firebase
     const dataToSave = {
       dieselType,
       quantity: parseFloat(quantity),
       category,
       note,
-      date: date.getTime(),
+      date: dateString,
+    };
+    const totalDieselAvailable = {
       dieselAvailable: newDieselAvailable,
     };
 
     // Call saveDataToFirebase with the data to be saved
     saveDataToFirebase(dataToSave);
-
+    saveDieselAvailable(totalDieselAvailable);
     // Reset form fields after saving
     setDieselType(null);
     setQuantity('');
