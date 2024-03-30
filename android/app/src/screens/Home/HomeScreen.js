@@ -5,7 +5,7 @@ import { db } from '../../../../../firebase';
 import { collection, addDoc } from 'firebase/firestore'; 
 import { Timestamp } from 'firebase/firestore'; 
 import { doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
-
+import { ScrollView } from 'react-native';
 const HomePage = () => {
   const [dieselAvailable, setDieselAvailable] = useState(0);
   const [transactions, setTransactions] = useState([]);
@@ -40,6 +40,52 @@ const HomePage = () => {
       console.error("Error fetching diesel available: ", error);
     }
   };
+
+   // Function to group transactions by month
+   const groupTransactionsByMonth = () => {
+    const groupedTransactions = {};
+    transactions.forEach(transaction => {
+      const monthYear = transaction.date.toLocaleString('default', { month: 'long', year: 'numeric' });
+      if (!groupedTransactions[monthYear]) {
+        groupedTransactions[monthYear] = [];
+      }
+      groupedTransactions[monthYear].push(transaction);
+    });
+    return groupedTransactions;
+  };
+
+  // Render method for grouped transactions
+  const renderGroupedTransactions = () => {
+    const groupedTransactions = groupTransactionsByMonth();
+    return (
+      <ScrollView horizontal={true} style={styles.transactionContainer}>
+        
+        <View style={styles.tableContainer}>
+          {Object.entries(groupedTransactions).map(([monthYear, transactions]) => ( 
+            <View key={monthYear}  style={styles.monthContainer}>
+            <Text style={styles.monthText}>{monthYear}</Text>
+            <View style={styles.tableHeader}>
+            <Text style={[styles.columnHeader, styles.dateColumnHeader]}>Date</Text>
+            <Text style={styles.columnHeader}>Type</Text>
+            <Text style={styles.columnHeader}>Quantity</Text>
+            <Text style={styles.columnHeader}>Category</Text>
+          </View>
+              {transactions.map(transaction => (
+                <View key={transaction.id} style={styles.tableRow}>
+                  <Text style={styles.tableCell}>{transaction.date.toDateString()}</Text>
+                  <Text style={styles.tableCell}>{transaction.dieselType}</Text>
+                  <Text style={styles.tableCell}>{transaction.quantity} </Text>
+                  <Text style={styles.tableCell}>{transaction.category}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    );
+  };
+  
+  
 
   const fetchTransactions = async () => {
     try {
@@ -144,18 +190,15 @@ const HomePage = () => {
     }
   
     return (
-      <View style={styles.transactionItem}>
-        <Text>Transaction Type: {transaction.dieselType}</Text>
-        <Text>Quantity: {transaction.quantity} Liters</Text>
-        <Text>Category: {transaction.category}</Text>
-        <Text>Note: {transaction.note}</Text>
-        <Text>Date: {transactionDate.toDateString()}</Text>
+      <View style={styles.transactionRow}>
+        <Text style={styles.transactionText}>{transactionDate.toDateString()} </Text>
+        <Text style={styles.transactionText}>{transaction.dieselType} </Text>
+        <Text style={styles.transactionText}>{transaction.quantity} Liters </Text>
+        <Text style={styles.transactionText}>{transaction.category}</Text>
       </View>
     );
   };
   
-  
-
   const renderDatePicker = () => {
     if (Platform.OS === 'ios' || showOptions) {
       return (
@@ -177,11 +220,10 @@ const HomePage = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.dieselAvailableText}>Diesel Available: {dieselAvailable.toFixed(2)} Liters</Text>
-      <FlatList
-        data={transactions}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => <TransactionItem transaction={item} />}
-      />
+      <ScrollView style={styles.scrollView}>
+        {renderGroupedTransactions()}
+      </ScrollView>
+    
       {showOptions ? (
         <View style={styles.optionsContainer}>
           <TouchableOpacity onPress={() => handleOptionSelect('Diesel In')} style={styles.optionButton}>
@@ -234,7 +276,7 @@ const HomePage = () => {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flex: 1, // Ensure the parent container fills the entire screen
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -305,6 +347,61 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  monthContainer: {
+    marginRight: 20,
+  },
+  monthText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  transactionsRow: {
+    flexDirection: 'row',
+  },
+  scrollView: {
+    flex: 1,
+    width: '100%',
+  },
+  tableContainer: {
+    flex: 1, // Allow the table container to fill the available space
+    width: '100%', // Ensure the table container takes up the entire width
+    paddingHorizontal: 20, // Add padding for better appearance
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 5,
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 10, // Increase the vertical padding
+    paddingHorizontal: 5,
+  },
+ columnHeader: {
+    flex: 1,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    paddingVertical: 10,
+  },
+  tableRow: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    marginBottom: 5,
+    alignItems: 'center', // Align items vertically
+  },
+  tableCell: {
+    flex: 1,
+    textAlign: 'center',
+    paddingVertical: 10, // Increase the vertical padding
+    paddingHorizontal: 5, // Add horizontal padding if needed
+    // Alternatively, you can set a fixed height for the cells
+    // height: 50, // Adjust the height as needed
+  },
+  dateColumnHeader: {
+    flex: 6, // Increase the width of the date cell
   },
 });
 
