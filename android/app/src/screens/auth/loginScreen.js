@@ -21,7 +21,7 @@ export default function LoginScreen() {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <Button
         title="Sign up"
-        onPress={handleSignUp}
+        onPress={handleSignUp} 
       />
       <Button
         title="Sign in"

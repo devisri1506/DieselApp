@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { db } from '../../../../../firebase';
 import { collection, addDoc } from 'firebase/firestore'; 
 import { Timestamp } from 'firebase/firestore'; 
+import { doc, setDoc, getDoc } from 'firebase/firestore';
 const HomePage = () => {
   const [showOptions, setShowOptions] = useState(false);
   const [dieselType, setDieselType] = useState(null);
@@ -18,7 +19,23 @@ const HomePage = () => {
     if (!db) {
       console.error("Firebase not initialized in HomePage");
     }
+    fetchDieselAvailable();
   }, []);
+
+  const fetchDieselAvailable = async () => {
+    try {
+      const dieselDocRef = doc(db, 'diesel', 'ReYlUUhVdqKl3fqhTBBM'); // Replace 'dieselDocumentId' with the actual document ID
+      const dieselDocSnapshot = await getDoc(dieselDocRef);
+      if (dieselDocSnapshot.exists()) {
+        const dieselData = dieselDocSnapshot.data();
+        setDieselAvailable(dieselData.dieselAvailable);
+      } else {
+        console.log("Diesel document does not exist");
+      }
+    } catch (error) {
+      console.error("Error fetching diesel available: ", error);
+    }
+  };
 
   const handleOptionSelect = (option) => {
     setShowOptions(false);
@@ -39,11 +56,23 @@ const HomePage = () => {
   };
   const saveDieselAvailable = async(data) => {
     try {
-      const docRef = await addDoc(collection(db, 'diesel'), data);
-      console.log("Document written with ID: ", docRef.id);
+      // Retrieve the existing document
+      const dieselDocRef = doc(db, 'diesel', 'ReYlUUhVdqKl3fqhTBBM');
+  
+      // Get the snapshot of the document
+      const dieselDocSnap = await getDoc(dieselDocRef);
+  
+      // Check if the document exists
+      if (dieselDocSnap.exists()) {
+        // Update the existing document with new data
+        await setDoc(dieselDocRef, data, { merge: true });
+        console.log("Document updated successfully");
+      } else {
+        console.log("Diesel document does not exist");
+      }
       Keyboard.dismiss();
     } catch (error) {
-      console.error("Error adding document: ", error);
+      console.error("Error updating diesel document: ", error);
       alert(error);
     }
   };
