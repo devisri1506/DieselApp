@@ -47,13 +47,17 @@ const HomePage = () => {
       const querySnapshot = await getDocs(transactionsCollectionRef);
       const fetchedTransactions = [];
       querySnapshot.forEach(doc => {
-        fetchedTransactions.push({ id: doc.id, ...doc.data() });
+        const transactionData = doc.data();
+        // Convert date string to Date object
+        const date = new Date(transactionData.date);
+        fetchedTransactions.push({ id: doc.id, ...transactionData, date });
       });
       setTransactions(fetchedTransactions);
     } catch (error) {
       console.error("Error fetching transactions: ", error);
     }
   };
+  
   
 
   const handleOptionSelect = (option) => {
