@@ -1,18 +1,21 @@
 import React, { useState,useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput, Platform, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, Platform, Keyboard, FlatList } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { db } from '../../../../../firebase';
 import { collection, addDoc } from 'firebase/firestore'; 
 import { Timestamp } from 'firebase/firestore'; 
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
+
 const HomePage = () => {
+  const [dieselAvailable, setDieselAvailable] = useState(0);
+  const [transactions, setTransactions] = useState([]);
   const [showOptions, setShowOptions] = useState(false);
   const [dieselType, setDieselType] = useState(null);
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date()); // Initialize with current date
-  const [dieselAvailable, setDieselAvailable] = useState(0);
+  
 
   useEffect(() => {
     // Check if Firebase is initialized
@@ -20,6 +23,7 @@ const HomePage = () => {
       console.error("Firebase not initialized in HomePage");
     }
     fetchDieselAvailable();
+    fetchTransactions();
   }, []);
 
   const fetchDieselAvailable = async () => {
@@ -37,12 +41,25 @@ const HomePage = () => {
     }
   };
 
+  const fetchTransactions = async () => {
+    try {
+      const transactionsCollectionRef = collection(db, 'dieselTransactions');
+      const querySnapshot = await getDocs(transactionsCollectionRef);
+      const fetchedTransactions = [];
+      querySnapshot.forEach(doc => {
+        fetchedTransactions.push({ id: doc.id, ...doc.data() });
+      });
+      setTransactions(fetchedTransactions);
+    } catch (error) {
+      console.error("Error fetching transactions: ", error);
+    }
+  };
+  
+
   const handleOptionSelect = (option) => {
     setShowOptions(false);
     setDieselType(option);
   };
-
-
 
   const saveDataToFirebase = async(data) => {
     try {
@@ -54,6 +71,7 @@ const HomePage = () => {
       alert(error);
     }
   };
+
   const saveDieselAvailable = async(data) => {
     try {
       // Retrieve the existing document
@@ -110,6 +128,30 @@ const HomePage = () => {
     setDate(new Date());
   };
 
+  const TransactionItem = ({ transaction }) => {
+    let transactionDate;
+  
+    if (transaction.date instanceof Date) {
+      transactionDate = transaction.date;
+    } else if (transaction.date && typeof transaction.date.toDate === 'function') {
+      transactionDate = transaction.date.toDate();
+    } else {
+      transactionDate = new Date();
+    }
+  
+    return (
+      <View style={styles.transactionItem}>
+        <Text>Transaction Type: {transaction.dieselType}</Text>
+        <Text>Quantity: {transaction.quantity} Liters</Text>
+        <Text>Category: {transaction.category}</Text>
+        <Text>Note: {transaction.note}</Text>
+        <Text>Date: {transactionDate.toDateString()}</Text>
+      </View>
+    );
+  };
+  
+  
+
   const renderDatePicker = () => {
     if (Platform.OS === 'ios' || showOptions) {
       return (
@@ -131,7 +173,11 @@ const HomePage = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.dieselAvailableText}>Diesel Available: {dieselAvailable.toFixed(2)} Liters</Text>
-
+      <FlatList
+        data={transactions}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => <TransactionItem transaction={item} />}
+      />
       {showOptions ? (
         <View style={styles.optionsContainer}>
           <TouchableOpacity onPress={() => handleOptionSelect('Diesel In')} style={styles.optionButton}>
