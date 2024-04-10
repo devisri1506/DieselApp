@@ -7,6 +7,7 @@ import LoginScreen from './android/app/src/screens/auth/loginScreen'; // Correct
 import EmailSignInScreen from './android/app/src/screens/auth/EmailSignInScreen'; // Correct import
 import EmailSignUpScreen from './android/app/src/screens/auth/EmailSignUpScreen'; // Correct import
 import HomeScreen from './android/app/src/screens/Home/HomeScreen';
+import Transaction from './android/app/src/screens/Home/Transaction';
 
 const Stack = createStackNavigator();
 
@@ -18,6 +19,7 @@ const App = () => {
         <Stack.Screen name="EmailSignIn" component={EmailSignInScreen} />
         <Stack.Screen name="SignUp" component={EmailSignUpScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Transaction" component={Transaction} />
         {/* Add more screens here if needed */}
       </Stack.Navigator>
     </NavigationContainer>

@@ -8,16 +8,16 @@ import { doc, setDoc, getDoc, getDocs } from 'firebase/firestore';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-const HomePage = () => {
+const Transaction = () => {
   const [dieselAvailable, setDieselAvailable] = useState(0);
   const [transactions, setTransactions] = useState([]);
-  const [showOptions, setShowOptions] = useState(false);
+  const [showOptions, setShowOptions] = useState(true);
   const [dieselType, setDieselType] = useState(null);
   const [quantity, setQuantity] = useState('');
   const [category, setCategory] = useState('');
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date()); // Initialize with current date
-  
+  const [refreshData, setRefreshData] = useState(false);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const HomePage = () => {
       console.error("Firebase not initialized in HomePage");
     }
     fetchDieselAvailable();
-    fetchTransactions();
+
   }, []);
 
   const fetchDieselAvailable = async () => {
@@ -43,74 +43,7 @@ const HomePage = () => {
       console.error("Error fetching diesel available: ", error);
     }
   };
-
-   // Function to group transactions by month
-   const groupTransactionsByMonth = () => {
-    const groupedTransactions = {};
-    transactions.forEach(transaction => {
-      const monthYear = transaction.date.toLocaleString('default', { month: 'long', year: 'numeric' });
-      if (!groupedTransactions[monthYear]) {
-        groupedTransactions[monthYear] = [];
-      }
-      groupedTransactions[monthYear].push(transaction);
-    });
-    return groupedTransactions;
-  };
-
-  // Render method for grouped transactions
-  const renderGroupedTransactions = () => {
-    const groupedTransactions = groupTransactionsByMonth();
-    return (
-      <ScrollView horizontal={true} style={styles.transactionContainer}>
-        
-        <View style={styles.tableContainer}>
-          {Object.entries(groupedTransactions).map(([monthYear, transactions]) => ( 
-            <View key={monthYear}  style={styles.monthContainer}>
-            <Text style={styles.monthText}>{monthYear}</Text>
-            <View style={styles.tableHeader}>
-            <Text style={[styles.columnHeader, styles.dateColumnHeader]}>Date</Text>
-            <Text style={styles.columnHeader}>Type</Text>
-            <Text style={styles.columnHeader}>Quantity</Text>
-            <Text style={styles.columnHeader}>Category</Text>
-          </View>
-              {transactions.map(transaction => (
-                <View key={transaction.id} style={styles.tableRow}>
-                  <Text style={styles.tableCell}>{transaction.date.toDateString()}</Text>
-                  <Text style={styles.tableCell}>{transaction.dieselType}</Text>
-                  <Text style={styles.tableCell}>{transaction.quantity} </Text>
-                  <Text style={styles.tableCell}>{transaction.category}</Text>
-                </View>
-              ))}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
-    );
-  };
-
-
-  const fetchTransactions = async () => {
-    try {
-      const transactionsCollectionRef = collection(db, 'dieselTransactions');
-      const querySnapshot = await getDocs(transactionsCollectionRef);
-      const fetchedTransactions = [];
-      querySnapshot.forEach(doc => {
-        const transactionData = doc.data();
-        // Convert date string to Date object
-        const date = new Date(transactionData.date);
-        fetchedTransactions.push({ id: doc.id, ...transactionData, date });
-      });
-      setTransactions(fetchedTransactions);
-    } catch (error) {
-      console.error("Error fetching transactions: ", error);
-    }
-  };
   
-  
-  const handlePlusPress= ()=> {
-    navigation.navigate('Transaction');
-  };
-
   const handleOptionSelect = (option) => {
     setShowOptions(false);
     setDieselType(option);
@@ -149,29 +82,45 @@ const HomePage = () => {
       alert(error);
     }
   };
-
-
-  const TransactionItem = ({ transaction }) => {
-    let transactionDate;
-  
-    if (transaction.date instanceof Date) {
-      transactionDate = transaction.date;
-    } else if (transaction.date && typeof transaction.date.toDate === 'function') {
-      transactionDate = transaction.date.toDate();
-    } else {
-      transactionDate = new Date();
+    const handleCancel=()=>
+    {
+        navigation.navigate('Home', { refresh: true });
     }
-  
-    return (
-      <View style={styles.transactionRow}>
-        <Text style={styles.transactionText}>{transactionDate.toDateString()} </Text>
-        <Text style={styles.transactionText}>{transaction.dieselType} </Text>
-        <Text style={styles.transactionText}>{transaction.quantity} Liters </Text>
-        <Text style={styles.transactionText}>{transaction.category}</Text>
-      </View>
-    );
+  const handleSave = () => {
+    // Calculate diesel available based on diesel in/out
+    let newDieselAvailable = dieselAvailable;
+    if (dieselType === 'Diesel In') {
+      newDieselAvailable += parseFloat(quantity);
+    } else if (dieselType === 'Diesel Out') {
+      newDieselAvailable -= parseFloat(quantity);
+    }
+    setDieselAvailable(newDieselAvailable);
+    const dateString = date.toISOString().split('T')[0]; 
+    // Prepare the data object to be saved to Firebase
+    const dataToSave = {
+      dieselType,
+      quantity: parseFloat(quantity),
+      category,
+      note,
+      date: dateString,
+    };
+    const totalDieselAvailable = {
+      dieselAvailable: newDieselAvailable,
+    };
+
+    // Call saveDataToFirebase with the data to be saved
+    saveDataToFirebase(dataToSave);
+    saveDieselAvailable(totalDieselAvailable);
+    setRefreshData(true);
+    // Reset form fields after saving
+    setDieselType(null);
+    setQuantity('');
+    setCategory('');
+    setNote('');
+    setDate(new Date());
+    navigation.navigate('Home');
   };
-  
+
   const renderDatePicker = () => {
     if (Platform.OS === 'ios' || showOptions) {
       return (
@@ -192,14 +141,21 @@ const HomePage = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.dieselAvailableText}>Diesel Available: {dieselAvailable.toFixed(2)} Liters</Text>
-      <ScrollView style={styles.scrollView}>
-        {renderGroupedTransactions()}
-      </ScrollView>
     
-        <TouchableOpacity onPress={(handlePlusPress) } style={styles.plusButton}>
+      {showOptions ? (
+        <View style={styles.optionsContainer}>
+          <TouchableOpacity onPress={() => handleOptionSelect('Diesel In')} style={styles.optionButton}>
+            <Text style={styles.optionText}>Diesel In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => handleOptionSelect('Diesel Out')} style={styles.optionButton}>
+            <Text style={styles.optionText}>Diesel Out</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity onPress={() => setShowOptions(true)} style={styles.plusButton}>
           <Text style={styles.plusText}>+</Text>
         </TouchableOpacity>
+      )}
 
       {dieselType && (
         <View style={styles.inputContainer}>
@@ -229,6 +185,9 @@ const HomePage = () => {
           {renderDatePicker()}
           <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
             <Text style={styles.saveText}>Save</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleCancel} style={styles.saveButton}>
+            <Text style={styles.saveText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -304,6 +263,7 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
+    margin:10,
   },
   saveText: {
     color: 'white',
@@ -367,4 +327,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomePage;
+export default Transaction;
