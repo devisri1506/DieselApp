@@ -29,8 +29,9 @@
     },
     "extra": {
       "eas": {
-        "projectId": "b54b15ae-8736-4c36-bdae-0e7ee87034aa"
+        "projectId": "f737d529-e250-4819-81a0-7395b78f8047"
       }
-    }
+    },
+    "owner": "dieselapp"
   }
 }

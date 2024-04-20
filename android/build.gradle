@@ -7,23 +7,24 @@ buildscript {
     }
 
     repositories {
-        google()
         mavenCentral()
+        google()
     }
 
     dependencies {
-        // Specify exact versions for dependencies
-        classpath "com.android.tools.build:gradle:$androidBuildToolsVersion"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-        classpath "com.google.gms:google-services:$googleServicesVersion"
-        classpath 'com.android.tools.build:gradle:4.0.0'
-    }
+    // Specify exact versions for dependencies
+    classpath "com.android.tools.build:gradle:$androidBuildToolsVersion"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+    classpath "com.google.gms:google-services:$googleServicesVersion"
+   }
+
 }
 
 allprojects {
     repositories {
         // Minimal repositories needed globally
-        google()
+       
         mavenCentral()
+         google()
     }
 }
