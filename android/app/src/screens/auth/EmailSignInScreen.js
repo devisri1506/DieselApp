@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Switch, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import tw from 'twrnc';
 
 const LoginComponent = () => {
     const emailRef = useRef('');
@@ -23,7 +24,7 @@ const LoginComponent = () => {
 
     const SignInForm = () => {
         return (
-            <View style={styles.form}>
+            <View style={tw`flex-1 justify-center items-center`}>
                 <TextInput
                     style={styles.input}
                     placeholder="Username"
