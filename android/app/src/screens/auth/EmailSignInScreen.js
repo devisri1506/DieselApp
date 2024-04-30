@@ -87,7 +87,7 @@ const LoginComponent = () => {
             <View style={styles.formBlock}>
                 <Text style={styles.header}>{isSignUp ? 'Sign Up' : 'Welcome back!'}</Text>
                 <View style={styles.toggleBlock}>
-                    <Text>{isSignUp ? "Already" : "Don't"} have an account? Click here ➡️</Text>
+                    <Text>{isSignUp ? "Already" : "Don't"} have an account? Click here</Text>
                     <Switch
                         trackColor={{ false: "#767577", true: "#81b0ff" }}
                         thumbColor={isSignUp ? "#f4f3f4" : "#f4f3f4"}

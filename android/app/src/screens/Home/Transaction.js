@@ -18,6 +18,7 @@ const Transaction = () => {
   const [note, setNote] = useState('');
   const [date, setDate] = useState(new Date()); // Initialize with current date
   const [refreshData, setRefreshData] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const Transaction = () => {
     setShowOptions(false);
     setDieselType(option);
   };
+
 
   const saveDataToFirebase = async(data) => {
     try {
@@ -82,6 +84,12 @@ const Transaction = () => {
       alert(error);
     }
   };
+  
+  const handleRowClick = (transaction) => {
+    setSelectedTransaction(transaction);
+  };
+
+
     const handleCancel=()=>
     {
         navigation.navigate('Home', { refresh: true });
