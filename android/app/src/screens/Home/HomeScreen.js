@@ -87,7 +87,7 @@ setTransactions(fetchedTransactions);
         {transactions.map((transaction, index) => (
           <TouchableOpacity key={index} onPress={() => handleRowClick(transaction)}>
             <View style={styles.transactionRow}>
-              <Text>{transaction.date.toLocaleString()}</Text>
+              <Text>{transaction.date.toLocaleString().split(',')[0]}</Text>
               <Text>{transaction.dieselType}</Text>
               <Text>{transaction.quantity} Liters</Text>
               <Text>{transaction.category}</Text>
